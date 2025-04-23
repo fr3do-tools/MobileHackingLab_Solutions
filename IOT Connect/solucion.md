@@ -77,9 +77,6 @@ Si es válido, se llama a `turnOnAllDevices(context)`.
 ## 🔐 Análisis de Seguridad: Checker
 En la clase `Checker` se encuentra lo siguiente:
 ```
-java
-Copiar
-Editar
 private static final String ds = "OSnaALIWUkpOziVAMycaZQ==";
 
 public final boolean check_key(int key) {
