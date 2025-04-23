@@ -57,27 +57,25 @@ Componentes Relevantes
 Componentes Relevantes
 Componentes encontrados en el AndroidManifest:
 
-MainActivity, LoginActivity, SignupActivity
+`MainActivity`, `LoginActivity`, `SignupActivity`
+`IoTNavigationActivity`, `HomeActivity`
+`MasterSwitchActivity` – Su nombre sugiere control administrativo o maestro.
+`CommunicationManager` – Maneja las comunicaciones, y contiene el método `initialize()` que registra dinámicamente el receptor para `MASTER_ON`.
 
-IoTNavigationActivity, HomeActivity
+---
 
-MasterSwitchActivity – Su nombre sugiere control administrativo o maestro.
+## 🧠 Lógica en CommunicationManager
+En la clase `CommunicationManager`:
 
-CommunicationManager – Maneja las comunicaciones, y contiene el método initialize() que registra dinámicamente el receptor para MASTER_ON.
+Se registra dinámicamente un `BroadcastReceiver` para la acción `MASTER_ON`.
+Se extrae un parámetro `key` del `Intent`.
+Se verifica mediante `Checker.INSTANCE.check_key(key)`.
+Si es válido, se llama a `turnOnAllDevices(context)`.
 
-Lógica en CommunicationManager
-En la clase CommunicationManager:
+---
 
-Se registra dinámicamente un BroadcastReceiver para la acción MASTER_ON.
-
-Se extrae un parámetro key del Intent.
-
-Se verifica mediante Checker.INSTANCE.check_key(key).
-
-Si es válido, se llama a turnOnAllDevices(context).
-
-Análisis de Seguridad: Checker
-En la clase Checker se encuentra lo siguiente:
+## 🔐 Análisis de Seguridad: Checker
+En la clase `Checker` se encuentra lo siguiente:
 ```
 java
 Copiar
@@ -89,11 +87,10 @@ public final boolean check_key(int key) {
 }
 ```
 El string cifrado se desencripta con AES/ECB/PKCS5Padding.
-
 La clave se genera con el valor entero del PIN proporcionado.
+Si el resultado es `"master_on"` el acceso es válido.
 
-Si el resultado es "master_on" el acceso es válido.
-
+---
 
 ## 🧨 Fuerza Bruta del PIN
 Como el PIN es de 3 dígitos, creamos un script Python para romper la clave por fuerza bruta.
@@ -131,9 +128,13 @@ Resultado:
 
 ```
 ✔️ Key encontrada: 345, Resultado: master_on
-🚀 Explotación desde ADB
-Ahora podemos explotar la vulnerabilidad usando el siguiente comando ADB:
 ```
+
+---
+
+## 🚀 Explotación desde ADB
+Ahora podemos explotar la vulnerabilidad usando el siguiente comando ADB:
+
 
 ```
 adb shell am broadcast -a MASTER_ON --ei key 345
@@ -141,29 +142,26 @@ adb shell am broadcast -a MASTER_ON --ei key 345
 Resultado:
 
 ✅ El sistema responde:
-All devices are turned on
-
+`All devices are turned on`
 ✅ Confirmamos que, incluso como "Guest", pudimos activar todos los artefactos IoT.
 
+---
 
-
-✅ Conclusión
-Se descubrió un BroadcastReceiver vulnerable expuesto sin validación de permisos.
-
+## ✅ Conclusión
+Se descubrió un `BroadcastReceiver` vulnerable expuesto sin validación de permisos.
 Fue posible forzar la clave por fuerza bruta (solo 3 dígitos).
+Se obtuvo control total de los dispositivos conectados simplemente enviando un `Intent`.
 
-Se obtuvo control total de los dispositivos conectados simplemente enviando un Intent.
+---
 
 ## 🛡️ Recomendaciones de Seguridad
-Establecer android:exported="false" para componentes sensibles.
-
+Establecer `android:exported="false"` para componentes sensibles.
 Validar siempre permisos y autenticación en receivers.
-
 Utilizar claves fuertes y derivadas de métodos seguros (PBKDF2, bcrypt, etc).
-
 No usar AES en modo ECB (es inseguro y predecible).
-
 Evitar lógica de seguridad crítica en el lado cliente.
+
+---
 
 ## 📁 Créditos
 Análisis realizado por fr3do
