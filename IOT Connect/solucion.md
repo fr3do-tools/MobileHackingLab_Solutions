@@ -8,14 +8,14 @@ Este repositorio documenta el análisis completo y explotación de una vulnerabi
 
 Comenzamos instalando el APK en el dispositivo.
 
-![Instalación del APK](imagenes/01_instalacion_apk.png)
+![Instalación del APK](imagenes/2025-04-22_20-56-Install.png)
 
 Creamos una nueva cuenta de usuario:  
 `fr3do : fr3do`
 
-![Formulario de registro](imagenes/02_signup_form.png)  
-![Registro exitoso](imagenes/03_signup_success.png)  
-![Inicio de sesión](imagenes/04_login.png)
+![Formulario de registro](imagenes/2025-04-22_20-57-Registro.png)  
+![Registro exitoso](imagenes/2025-04-22_20-59-registro_exitoso.png)  
+![Inicio de sesión](imagenes/2025-04-22_20-59-login.png)
 
 ---
 
@@ -23,7 +23,7 @@ Creamos una nueva cuenta de usuario:
 
 Una vez dentro de la app, notamos que algunos dispositivos pueden ser controlados.
 
-![Vista de control de artefactos](imagenes/05_dispositivos_apagados.png)
+![Vista de control de artefactos](imagenes/2025-04-22_21-00-control.png)
 
 Pero como usuario invitado, aparece el mensaje:
 
@@ -31,7 +31,7 @@ Pero como usuario invitado, aparece el mensaje:
 
 Esto sugiere que existen funciones ocultas o limitadas por permisos. Es el punto de partida para el análisis en `jadx-gui`.
 
-![Mensaje de error de Guest](imagenes/06_sorry_guest.png)
+![Mensaje de error de Guest](imagenes/2025-04-22_21-00-error_guest.png)
 
 ---
 
@@ -40,6 +40,7 @@ Esto sugiere que existen funciones ocultas o limitadas por permisos. Es el punto
 ### AndroidManifest.xml
 
 Exploramos el archivo `AndroidManifest.xml` y encontramos:
+![AndroidManifest.xml](imagenes/2025-04-22_21-02-manifest.png)
 
 ```xml
 <receiver
@@ -51,6 +52,7 @@ Exploramos el archivo `AndroidManifest.xml` y encontramos:
     </intent-filter>
 </receiver>
 ```
+
 ✅ Está exportado, lo que significa que cualquier app externa o ADB puede enviarle un intent.
 Componentes Relevantes
 
@@ -66,6 +68,7 @@ Componentes encontrados en el AndroidManifest:
 
 ## 🧠 Lógica en CommunicationManager
 En la clase `CommunicationManager`:
+![CommunicationManager](imagenes/2025-04-22_21-02-comunicator.png)
 
 Se registra dinámicamente un `BroadcastReceiver` para la acción `MASTER_ON`.
 Se extrae un parámetro `key` del `Intent`.
@@ -76,6 +79,7 @@ Si es válido, se llama a `turnOnAllDevices(context)`.
 
 ## 🔐 Análisis de Seguridad: Checker
 En la clase `Checker` se encuentra lo siguiente:
+![Checker](imagenes/2025-04-22_21-02-checker.png)
 ```
 private static final String ds = "OSnaALIWUkpOziVAMycaZQ==";
 
@@ -122,6 +126,7 @@ for i in range(100, 1000):
 ```
 
 Resultado:
+![Resultado](imagenes/2025-04-22_21-03-resultado-brute.png)
 
 ```
 ✔️ Key encontrada: 345, Resultado: master_on
@@ -131,7 +136,7 @@ Resultado:
 
 ## 🚀 Explotación desde ADB
 Ahora podemos explotar la vulnerabilidad usando el siguiente comando ADB:
-
+![Explotacion desde ADB](imagenes/2025-04-22_21-04-explotacion-adb.png)
 
 ```
 adb shell am broadcast -a MASTER_ON --ei key 345
@@ -140,6 +145,7 @@ Resultado:
 
 ✅ El sistema responde:
 `All devices are turned on`
+![Sistema Explotado](imagenes/2025-04-22_21-04-resultado-explotado.png)
 ✅ Confirmamos que, incluso como "Guest", pudimos activar todos los artefactos IoT.
 
 ---
